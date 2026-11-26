@@ -19,10 +19,19 @@ const POLL_INTERVAL_MS = 500;
 // letters, numbers, spaces and - ' . _ @. Any other character keeps the
 // Join now button disabled with "Your name can only include letters,
 // numbers, spaces, and these symbols: - ' . _ @".
-const DISALLOWED_NAME_CHARACTERS = /[^\p{L}\p{N} '._@-]/gu;
+// Combining marks (\p{M}) are kept so scripts NFC does not fully compose
+// (Devanagari and friends) survive, and typographic apostrophes map to '.
+const DISALLOWED_NAME_CHARACTERS = /[^\p{L}\p{N}\p{M} '._@-]/gu;
 
-export const allowedDisplayName = (name: string): string =>
-  name.replace(DISALLOWED_NAME_CHARACTERS, ' ').replace(/\s+/g, ' ').trim();
+export const allowedDisplayName = (name: string): string => {
+  const sanitized = name
+    .normalize('NFC')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(DISALLOWED_NAME_CHARACTERS, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return sanitized || 'Notetaker';
+};
 async function switchOff(toggle: Locator): Promise<void> {
   if (await toggle.isChecked()) await toggle.uncheck({ force: true });
 }

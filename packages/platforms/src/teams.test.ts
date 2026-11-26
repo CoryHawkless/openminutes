@@ -48,7 +48,21 @@ describe('teams.allowedDisplayName', () => {
 
   it('collapses the spaces left behind and trims', () => {
     expect(allowedDisplayName('  A?(B)  C  ')).toBe('A B C');
-    expect(allowedDisplayName('🎉🚀')).toBe('');
+  });
+
+  it('maps typographic apostrophes to the allowed one', () => {
+    expect(allowedDisplayName('O’Brien’s Bot')).toBe("O'Brien's Bot");
+    expect(allowedDisplayName("O’Brien")).toBe("O'Brien");
+  });
+
+  it('keeps combining marks that NFC does not compose', () => {
+    expect(allowedDisplayName('हिन्दी बॉट 🚀')).toBe('हिन्दी बॉट');
+    expect(allowedDisplayName('e\u0301clair')).toBe('éclair');
+  });
+
+  it('falls back to a default when nothing allowed remains', () => {
+    expect(allowedDisplayName('🎉🚀')).toBe('Notetaker');
+    expect(allowedDisplayName('   ')).toBe('Notetaker');
   });
 });
 
